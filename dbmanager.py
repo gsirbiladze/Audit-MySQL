@@ -1,11 +1,9 @@
 
 import mysql.connector as mql
-import pprint
 from   collections import OrderedDict
+from   print_pretty_table import print_table 
 
 class DBManager:
-
-
 
     def __init__(self, use_db=True, exit_on_error=True, **conn_info):
         if not conn_info:
@@ -59,33 +57,22 @@ class DBManager:
             return ''
 
 
-
     def execute_query(self, sql, data_return=False):
         try:
             self.cursor.execute(sql)
-            #pprint.pprint(self.cursor.description)
-            column_names = self.cursor.column_names
-            table = [] 
-            row = self.cursor.fetchone()
-            while row is not None:
-                table.append(zip(column_names, row))
-                row = self.cursor.fetchone()
-         
             if data_return:
+                column_names = self.cursor.column_names
+                table = []
+                row = self.cursor.fetchone()
+                while row is not None:
+                    table.append(zip(column_names, row))
+                    row = self.cursor.fetchone()
                 return table
             else:
-                if table:
-                    one_line = ''
-                    for title in OrderedDict(table[0]).keys():
-                        one_line = one_line + ' | ' + str(title)
-                    print(one_line)
-
-                    for records in table:
-                        one_line = ''
-                        for rec in OrderedDict(records).values():
-                            one_line = one_line + ' | ' + str(rec).replace('\n','')
-                        print(one_line)
-
+                table = []
+                table.append(list(self.cursor.column_names))
+                table.extend([list(rec) for rec in self.cursor.fetchall()])
+                print_table(table, first_is_header=True,  print_summary=True, separate_recs=False)
         except Exception as err:
             print(err)
 
